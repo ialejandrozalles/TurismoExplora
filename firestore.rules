@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Reglas para la colección de usuarios (Registro e Inicio de Sesión)
+    match /users/{userId} {
+      // Permite leer el documento si el usuario ha iniciado sesión y es el dueño del perfil
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Permite crear el documento de perfil solo si el ID coincide con el usuario recién registrado
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Permite actualizar sus datos posteriormente
+      allow update: if request.auth != null && request.auth.uid == userId;
+      
+      // Bloquea el borrado accidental de perfiles desde el cliente
+      allow delete: if false;
+    }
+
+    // Regla de seguridad por defecto para cualquier otra colección
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

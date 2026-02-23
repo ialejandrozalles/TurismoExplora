@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "630984438405",
+    "project_id": "adventure-culture",
+    "storage_bucket": "adventure-culture.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:630984438405:android:5e63574cf49c4611ee2fec",
+        "android_client_info": {
+          "package_name": "com.adventure.culture"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVopl54OBLT_NtVtkyoYid1WjM07whDDs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
