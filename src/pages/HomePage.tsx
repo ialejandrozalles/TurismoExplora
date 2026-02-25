@@ -72,11 +72,46 @@ const HomePage = () => {
         <main className="min-h-screen bg-background">
             <Navbar />
             <HeroSection onScrollToSearch={() => {
-                // We will navigate to the search page or scroll down if search is implemented
-                document.getElementById("silos-section")?.scrollIntoView({ behavior: "smooth" });
+                document.getElementById("featured-section")?.scrollIntoView({ behavior: "smooth" });
             }} />
 
-            {/* Silos Section */}
+            {/* Sección 2: Destinos Destacados / Algoritmo de descubrimiento */}
+            <section id="featured-section" className="py-20">
+                <div className="max-w-7xl mx-auto px-4 md:px-8">
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-10">
+                        <div>
+                            <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
+                                Inspiración para tu viaje
+                            </h2>
+                            <p className="text-muted-foreground font-body max-w-xl">
+                                Una selección especial de lugares increíbles para tu próxima aventura.
+                            </p>
+                        </div>
+                        <Link to="/buscar" className="hidden md:inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                            Ver todos los destinos
+                        </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {isPersonalized
+                            ? recommendations.map(({ place }) => (
+                                <PlaceCard key={place.id} place={place} />
+                            ))
+                            : featuredPlaces.map((p) => (
+                                <PlaceCard key={p.id} place={p} />
+                            ))
+                        }
+                    </div>
+
+                    <div className="mt-10 text-center md:hidden">
+                        <Link to="/buscar" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
+                            Ver todos los destinos
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* Sección 3: Exploración Activa / Categorías */}
             <section id="silos-section" className="py-20 bg-secondary/30">
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
                     <div className="text-center mb-12 animate-fade-in">
@@ -114,58 +149,6 @@ const HomePage = () => {
                                 </Link>
                             );
                         })}
-                    </div>
-                </div>
-            </section>
-
-            {/* Featured / Personalized Destinations */}
-            <section className="py-20">
-                <div className="max-w-7xl mx-auto px-4 md:px-8">
-                    <div className="flex flex-col md:flex-row justify-between items-end mb-10">
-                        <div>
-                            {isPersonalized ? (
-                                <>
-                                    <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
-                                        Recomendados para ti,{" "}
-                                        <span className="text-primary">
-                                            {userProfile?.name?.split(" ")[0] ?? ""}
-                                        </span>
-                                    </h2>
-                                    <p className="text-muted-foreground font-body max-w-xl">
-                                        Basado en los destinos que has explorado.
-                                    </p>
-                                </>
-                            ) : (
-                                <>
-                                    <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
-                                        Destinos Destacados
-                                    </h2>
-                                    <p className="text-muted-foreground font-body max-w-xl">
-                                        Los lugares más increíbles y populares para comenzar a explorar.
-                                    </p>
-                                </>
-                            )}
-                        </div>
-                        <Link to="/buscar" className="hidden md:inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-                            Ver todos los destinos
-                        </Link>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {isPersonalized
-                            ? recommendations.map(({ place }) => (
-                                <PlaceCard key={place.id} place={place} />
-                            ))
-                            : featuredPlaces.map((p) => (
-                                <PlaceCard key={p.id} place={p} />
-                            ))
-                        }
-                    </div>
-
-                    <div className="mt-10 text-center md:hidden">
-                        <Link to="/buscar" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full">
-                            Ver todos los destinos
-                        </Link>
                     </div>
                 </div>
             </section>
