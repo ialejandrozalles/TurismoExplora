@@ -7,6 +7,7 @@ import { places } from "@/data/places";
 import { TreePine, Landmark, Castle, Tent, Building2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getRecommendations } from "@/algorithms/getRecommendations";
+import ChatBot from "@/components/ChatBot";
 
 export const SILOS = [
     {
@@ -158,6 +159,9 @@ const HomePage = () => {
                     © 2026 TurismoExplora — Diseñado para descubridores
                 </p>
             </footer>
+
+            {/* Asistente virtual flotante */}
+            <ChatBot />
         </main>
     );
 };
