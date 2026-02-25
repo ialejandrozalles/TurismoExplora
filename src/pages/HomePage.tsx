@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
+import { useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import PlaceCard from "@/components/PlaceCard";
 import { places } from "@/data/places";
 import { TreePine, Landmark, Castle, Tent, Building2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { getRecommendations } from "@/algorithms/getRecommendations";
 
 export const SILOS = [
     {
@@ -54,7 +57,15 @@ export const SILOS = [
 ];
 
 const HomePage = () => {
-    // Let's get top 3 featured places (just grabbing first 3 for now, can be customized)
+    const { currentUser, userProfile } = useAuth();
+
+    // Algoritmo de recomendaciones basado en comportamiento
+    const recommendations = useMemo(() => {
+        if (!currentUser || !userProfile) return [];
+        return getRecommendations(userProfile);
+    }, [currentUser, userProfile]);
+
+    const isPersonalized = recommendations.length > 0;
     const featuredPlaces = places.slice(0, 3);
 
     return (
@@ -107,17 +118,33 @@ const HomePage = () => {
                 </div>
             </section>
 
-            {/* Featured Destinations */}
+            {/* Featured / Personalized Destinations */}
             <section className="py-20">
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
                     <div className="flex flex-col md:flex-row justify-between items-end mb-10">
                         <div>
-                            <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
-                                Destinos Destacados
-                            </h2>
-                            <p className="text-muted-foreground font-body max-w-xl">
-                                Los lugares más increíbles y populares recomendados por nuestra comunidad de viajeros.
-                            </p>
+                            {isPersonalized ? (
+                                <>
+                                    <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
+                                        Recomendados para ti,{" "}
+                                        <span className="text-primary">
+                                            {userProfile?.name?.split(" ")[0] ?? ""}
+                                        </span>
+                                    </h2>
+                                    <p className="text-muted-foreground font-body max-w-xl">
+                                        Basado en los destinos que has explorado.
+                                    </p>
+                                </>
+                            ) : (
+                                <>
+                                    <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
+                                        Destinos Destacados
+                                    </h2>
+                                    <p className="text-muted-foreground font-body max-w-xl">
+                                        Los lugares más increíbles y populares para comenzar a explorar.
+                                    </p>
+                                </>
+                            )}
                         </div>
                         <Link to="/buscar" className="hidden md:inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
                             Ver todos los destinos
@@ -125,9 +152,14 @@ const HomePage = () => {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {featuredPlaces.map((p) => (
-                            <PlaceCard key={p.id} place={p} />
-                        ))}
+                        {isPersonalized
+                            ? recommendations.map(({ place }) => (
+                                <PlaceCard key={place.id} place={place} />
+                            ))
+                            : featuredPlaces.map((p) => (
+                                <PlaceCard key={p.id} place={p} />
+                            ))
+                        }
                     </div>
 
                     <div className="mt-10 text-center md:hidden">

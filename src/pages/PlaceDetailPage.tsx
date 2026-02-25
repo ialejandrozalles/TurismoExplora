@@ -1,14 +1,42 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useMemo } from "react";
 import { ArrowLeft, MapPin, Thermometer, Calendar, DollarSign, ShieldCheck } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { places } from "@/data/places";
 import { Button } from "@/components/ui/button";
+import PlaceCard from "@/components/PlaceCard";
+import { useAuth } from "@/contexts/AuthContext";
+import { getRecommendations } from "@/algorithms/getRecommendations";
 
 const PlaceDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { currentUser, userProfile, recordViewAndUpdate } = useAuth();
+
+    // Registrar vista + actualizar estado local para recomendaciones inmediatas
+    useEffect(() => {
+        if (currentUser && id) {
+            recordViewAndUpdate(id);
+        }
+    }, [currentUser, id]);
 
     const place = places.find(p => p.id === id);
+
+    // Recomendaciones personalizadas — excluye el lugar actual y los ya visitados
+    const personalizedRecs = useMemo(() => {
+        if (!currentUser || !userProfile) return [];
+        return getRecommendations(userProfile, 3, id, true);
+    }, [currentUser, userProfile, id]);
+
+    // Lugares similares por tipo (siempre visible, excluye el actual)
+    const similarPlaces = useMemo(() => {
+        if (!place) return [];
+        return places.filter(p => p.type === place.type && p.id !== place.id).slice(0, 3);
+    }, [place]);
+
+    // Decide qué sección mostrar
+    const showPersonalized = personalizedRecs.length > 0;
+    const showSimilar = !showPersonalized && similarPlaces.length > 0;
 
     if (!place) {
         return (
@@ -126,6 +154,44 @@ const PlaceDetailPage = () => {
 
                 </div>
             </section>
+
+            {/* ─── Sección de Recomendaciones ─── */}
+            {(showPersonalized || showSimilar) && (
+                <section className="py-14 bg-secondary/30 border-t border-border">
+                    <div className="max-w-7xl mx-auto px-4 md:px-8">
+                        {showPersonalized ? (
+                            <div className="mb-8">
+                                <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">
+                                    Recomendados para ti
+                                </h2>
+                                <p className="text-muted-foreground font-body mt-1">
+                                    Basado en los destinos que has explorado.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="mb-8">
+                                <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">
+                                    Lugares similares
+                                </h2>
+                                <p className="text-muted-foreground font-body mt-1">
+                                    Otros destinos {place.type.toLowerCase()}s que podrían interesarte.
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {showPersonalized
+                                ? personalizedRecs.map(({ place: rec }) => (
+                                    <PlaceCard key={rec.id} place={rec} />
+                                ))
+                                : similarPlaces.map((p) => (
+                                    <PlaceCard key={p.id} place={p} />
+                                ))
+                            }
+                        </div>
+                    </div>
+                </section>
+            )}
 
             <footer className="border-t border-border py-8 text-center bg-card">
                 <p className="text-sm font-body text-muted-foreground">

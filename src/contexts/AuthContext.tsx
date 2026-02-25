@@ -1,13 +1,20 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, increment } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { places } from "@/data/places";
 
 interface UserProfile {
     name: string;
     email: string;
     favorites?: string[];
     createdAt?: string;
+    // Algoritmo de recomendación
+    viewedPlaces?: string[];
+    typePreferences?: Record<string, number>;
+    climatePreferences?: Record<string, number>;
+    accessibilityPreferences?: Record<string, number>;
+    entryCostPreferences?: Record<string, number>;
 }
 
 interface AuthContextType {
@@ -16,6 +23,7 @@ interface AuthContextType {
     loading: boolean;
     logout: () => Promise<void>;
     toggleFavorite: (placeId: string) => Promise<void>;
+    recordViewAndUpdate: (placeId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,6 +32,7 @@ const AuthContext = createContext<AuthContextType>({
     loading: true,
     logout: async () => { },
     toggleFavorite: async () => { },
+    recordViewAndUpdate: async () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -66,6 +75,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         await signOut(auth);
     };
 
+    /**
+     * Registra la vista de un lugar EN Firestore y actualiza el estado local
+     * de userProfile para que las recomendaciones sean inmediatas.
+     */
+    const recordViewAndUpdate = async (placeId: string) => {
+        if (!currentUser || !userProfile) return;
+        const place = places.find((p) => p.id === placeId);
+        if (!place) return;
+
+        // 1. Escribir en Firestore
+        try {
+            const userRef = doc(db, "users", currentUser.uid);
+            await updateDoc(userRef, {
+                viewedPlaces: arrayUnion(placeId),
+                [`typePreferences.${place.type}`]: increment(1),
+                [`climatePreferences.${place.climate}`]: increment(1),
+                [`accessibilityPreferences.${place.accessibility}`]: increment(1),
+                [`entryCostPreferences.${place.entryCost}`]: increment(1),
+            });
+        } catch (error) {
+            console.error("[recordViewAndUpdate] Error Firestore:", error);
+        }
+
+        // 2. Actualizar el estado local inmediatamente (sin re-fetch)
+        setUserProfile((prev) => {
+            if (!prev) return prev;
+            const addOne = (record: Record<string, number> | undefined, key: string) => ({
+                ...(record ?? {}),
+                [key]: ((record ?? {})[key] ?? 0) + 1,
+            });
+            const viewed = prev.viewedPlaces ?? [];
+            return {
+                ...prev,
+                viewedPlaces: viewed.includes(placeId) ? viewed : [...viewed, placeId],
+                typePreferences: addOne(prev.typePreferences, place.type),
+                climatePreferences: addOne(prev.climatePreferences, place.climate),
+                accessibilityPreferences: addOne(prev.accessibilityPreferences, place.accessibility),
+                entryCostPreferences: addOne(prev.entryCostPreferences, place.entryCost),
+            };
+        });
+    };
+
     const toggleFavorite = async (placeId: string) => {
         if (!currentUser || !userProfile) return;
 
@@ -89,7 +140,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ currentUser, userProfile, loading, logout, toggleFavorite }}>
+        <AuthContext.Provider value={{ currentUser, userProfile, loading, logout, toggleFavorite, recordViewAndUpdate }}>
             {!loading && children}
         </AuthContext.Provider>
     );
