@@ -33,7 +33,7 @@ interface Message {
 }
 
 // ─── API Gemini ───────────────────────────────────────────────────────────────
-const GEMINI_API_KEY = "AIzaSyAF2YaDo90ady_j8QmsZt91cn9bKDeIF60";
+const GEMINI_API_KEY = "AIzaSyDrVc0Kh2MKw0EQNld7Nk1K_QJzAYTpnaI";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`;
 
 async function askGemini(history: Message[], userMessage: string): Promise<string> {
