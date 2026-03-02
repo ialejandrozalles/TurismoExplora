@@ -39,73 +39,47 @@ const ExplorePage = () => {
     const activeFilters = Object.values(filters).filter(value => value !== "");
     const totalFiltersApplied = activeFilters.length;
 
-    // If no filters applied, return all places with 100% score
-    if (totalFiltersApplied === 0) {
-      return places.map(p => ({ place: p, score: 100 }));
-    }
-
-    // 2. Score each place
+    // 2. Score each place using the advanced algorithm
     const results: ScoredPlace[] = places.map((p) => {
-      let matches = 0;
-      let score = 0;
+      let rawScore = 0;
 
-      // Location filters are strict overrides (if wrong city, score is 0)
-      // because if someone searches entirely in a different city, it shouldn't show up as a "match" usually.
-      // But for a true "smart" search, let's just make them heavy weights instead of hard filters.
-      const WEIGHTS = {
-        department: 30,
-        city: 30,
-        type: 15,
-        climate: 10,
-        season: 5,
-        entryCost: 5,
-        accessibility: 5
-      };
+      // Base matches according to user's requested logic
+      if (filters.type && p.type === filters.type) rawScore += 30;
+      if (filters.city && p.city === filters.city) rawScore += 25;
+      if (filters.entryCost && p.entryCost === filters.entryCost) rawScore += 15;
+      if (filters.climate && p.climate === filters.climate) rawScore += 10;
 
-      let maxPossibleScore = 0;
+      // Additional UI filters not in the exact snippet but exist in the UI
+      if (filters.department && p.department === filters.department) rawScore += 25;
+      if (filters.season && (p.season === filters.season || p.season === "Todo el año")) rawScore += 10;
+      if (filters.accessibility && p.accessibility === filters.accessibility) rawScore += 10;
 
-      if (filters.department) {
-        maxPossibleScore += WEIGHTS.department;
-        if (p.department === filters.department) matches += WEIGHTS.department;
-      }
-      if (filters.city) {
-        maxPossibleScore += WEIGHTS.city;
-        if (p.city === filters.city) matches += WEIGHTS.city;
-      }
-      if (filters.type) {
-        maxPossibleScore += WEIGHTS.type;
-        if (p.type === filters.type) matches += WEIGHTS.type;
-      }
-      if (filters.climate) {
-        maxPossibleScore += WEIGHTS.climate;
-        if (p.climate === filters.climate) matches += WEIGHTS.climate;
-      }
-      if (filters.season) {
-        maxPossibleScore += WEIGHTS.season;
-        if (p.season === filters.season || p.season === "Todo el año") matches += WEIGHTS.season; // "Todo el año" matches anything
-      }
-      if (filters.entryCost) {
-        maxPossibleScore += WEIGHTS.entryCost;
-        if (p.entryCost === filters.entryCost) matches += WEIGHTS.entryCost;
-        if (filters.entryCost === "Pago" && p.entryCost === "Gratuito") matches += WEIGHTS.entryCost * 0.5; // Free is partially acceptable if they are willing to pay, but not vice versa
-      }
-      if (filters.accessibility) {
-        maxPossibleScore += WEIGHTS.accessibility;
-        if (p.accessibility === filters.accessibility) matches += WEIGHTS.accessibility;
-        if (filters.accessibility === "Baja" && (p.accessibility === "Media" || p.accessibility === "Alta")) matches += WEIGHTS.accessibility; // If I accept low access, high access is also good
-        if (filters.accessibility === "Media" && p.accessibility === "Alta") matches += WEIGHTS.accessibility;
-      }
+      // Advanced metrics added by user
+      rawScore += p.popularidad * 5;
+      rawScore += Math.log(p.visitas + 1);
 
-      // Calculate percentage, maxing at 100%
-      score = maxPossibleScore > 0 ? Math.round((matches / maxPossibleScore) * 100) : 100;
+      // Max theoretical raw score is around 660 (125 from filters + 500 from popularity + ~16 from visits log)
+      // We normalize it to a 0-100 scale for the UI Badge to make sense.
+      // If we don't normalize it, it might display "450% Match".
+      // We'll map the rawScore so that a very good place with matches reaches ~99%
+      let normalizedScore = Math.min(Math.round((rawScore / 640) * 100), 100);
 
-      return { place: p, score };
+      // If no filters are applied, we still want to sort by popularity, 
+      // but maybe not show them all as "100% Match". A normalized score works perfectly for this default ranking.
+
+      return { place: p, score: normalizedScore };
     });
 
-    // 3. Filter minimum threshold (e.g. must be at least 40% match) and Sort by highest score
-    return results
-      .filter(r => r.score >= 40)
-      .sort((a, b) => b.score - a.score);
+    // 3. Sort by highest score.
+    // If filters are active, we might want a minimum threshold (e.g. at least 60% with the new high baseline).
+    // Because popularity alone gives ~500 points (78%), let's just sort and not aggressively filter out popular places, 
+    // or filter based on a relative threshold. 
+    // Actually, users want to see the best matches first!
+    const sorted = results.sort((a, b) => b.score - a.score);
+
+    // If there are filters applied, maybe filter out places that didn't match any filter 
+    // and just have low popularity, but with this algorithm, sorting is usually enough.
+    return sorted;
 
   }, [filters]);
 

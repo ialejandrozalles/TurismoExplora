@@ -57,6 +57,8 @@ const PlaceDetailPage = () => {
                 <img
                     src={place.image}
                     alt={place.name}
+                    width={1920}
+                    height={1080}
                     className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />

@@ -16,6 +16,8 @@ export interface TouristPlace {
   accessibility: Accessibility;
   description: string;
   image: string;
+  popularidad: number;
+  visitas: number;
 }
 
 import machuPicchu from "@/assets/destinations/machu-picchu.jpg";
@@ -51,6 +53,8 @@ export const places: TouristPlace[] = [
     accessibility: "Baja",
     description: "Antigua ciudadela inca declarada Patrimonio de la Humanidad, ubicada en lo alto de los Andes peruanos.",
     image: machuPicchu,
+    popularidad: 98,
+    visitas: 1500000,
   },
   {
     id: "2",
@@ -64,6 +68,8 @@ export const places: TouristPlace[] = [
     accessibility: "Baja",
     description: "Parque nacional con montañas imponentes, glaciares y lagos turquesa en la Patagonia chilena.",
     image: torresDelPaine,
+    popularidad: 92,
+    visitas: 300000,
   },
   {
     id: "3",
@@ -77,6 +83,8 @@ export const places: TouristPlace[] = [
     accessibility: "Alta",
     description: "Ciudad colonial Patrimonio de la Humanidad con callejones coloridos, teatros y arquitectura barroca.",
     image: guanajuato,
+    popularidad: 85,
+    visitas: 500000,
   },
   {
     id: "4",
@@ -90,6 +98,8 @@ export const places: TouristPlace[] = [
     accessibility: "Alta",
     description: "Conjunto de templos milenarios, jardines zen y santuarios sintoístas en la antigua capital imperial japonesa.",
     image: kyoto,
+    popularidad: 95,
+    visitas: 2000000,
   },
   {
     id: "5",
@@ -103,6 +113,8 @@ export const places: TouristPlace[] = [
     accessibility: "Media",
     description: "Zocos vibrantes, palacios históricos y plazas animadas en el corazón de la ciudad roja de Marruecos.",
     image: marrakech,
+    popularidad: 88,
+    visitas: 800000,
   },
   {
     id: "6",
@@ -116,6 +128,8 @@ export const places: TouristPlace[] = [
     accessibility: "Alta",
     description: "Lago glaciar rodeado de montañas nevadas, ideal para paseos, kayak y contemplación del paisaje.",
     image: queenstown,
+    popularidad: 82,
+    visitas: 150000,
   },
   {
     id: "7",
@@ -129,6 +143,8 @@ export const places: TouristPlace[] = [
     accessibility: "Media",
     description: "Formaciones rocosas únicas con ciudades subterráneas y paisajes lunares esculpidos por la erosión.",
     image: cappadocia,
+    popularidad: 91,
+    visitas: 600000,
   },
   {
     id: "8",
@@ -142,6 +158,8 @@ export const places: TouristPlace[] = [
     accessibility: "Media",
     description: "Espectaculares terrazas de arroz escalonadas con sistema de irrigación tradicional balinés.",
     image: bali,
+    popularidad: 89,
+    visitas: 450000,
   },
   {
     id: "9",
@@ -155,6 +173,8 @@ export const places: TouristPlace[] = [
     accessibility: "Media",
     description: "Ciudad nabatea tallada en roca rojiza, una de las Siete Maravillas del Mundo Moderno.",
     image: petra,
+    popularidad: 96,
+    visitas: 1100000,
   },
   {
     id: "10",
@@ -168,6 +188,8 @@ export const places: TouristPlace[] = [
     accessibility: "Alta",
     description: "Paisaje alpino entre lagos cristalinos y cumbres nevadas, con senderos accesibles para todos.",
     image: interlaken,
+    popularidad: 86,
+    visitas: 400000,
   },
   {
     id: "11",
@@ -181,6 +203,8 @@ export const places: TouristPlace[] = [
     accessibility: "Alta",
     description: "Icónico barrio porteño con casas de colores, arte callejero, tango y gastronomía local.",
     image: buenosAires,
+    popularidad: 87,
+    visitas: 1200000,
   },
   {
     id: "12",
@@ -194,6 +218,8 @@ export const places: TouristPlace[] = [
     accessibility: "Alta",
     description: "Impresionante sistema de cascadas rodeadas de selva subtropical, Patrimonio de la Humanidad.",
     image: iguazu,
+    popularidad: 94,
+    visitas: 1400000,
   },
   {
     id: "13",
@@ -207,6 +233,8 @@ export const places: TouristPlace[] = [
     accessibility: "Alta",
     description: "Anfiteatro romano del siglo I, símbolo del Imperio Romano y Patrimonio de la Humanidad.",
     image: coliseo,
+    popularidad: 99,
+    visitas: 7000000,
   },
   {
     id: "14",
@@ -220,6 +248,8 @@ export const places: TouristPlace[] = [
     accessibility: "Alta",
     description: "Amplia área verde urbana con senderos, juegos infantiles y espacios de recreación familiar.",
     image: parqueCentral,
+    popularidad: 70,
+    visitas: 800000,
   },
   {
     id: "15",
@@ -233,6 +263,8 @@ export const places: TouristPlace[] = [
     accessibility: "Baja",
     description: "Majestuosas pirámides mayas emergiendo de la selva tropical, centro ceremonial del mundo maya.",
     image: tikal,
+    popularidad: 89,
+    visitas: 350000,
   },
   {
     id: "16",
@@ -246,6 +278,8 @@ export const places: TouristPlace[] = [
     accessibility: "Media",
     description: "Lago volcánico rodeado de tres volcanes y pueblos indígenas con rica tradición cultural.",
     image: atitlan,
+    popularidad: 85,
+    visitas: 400000,
   },
   {
     id: "17",
@@ -259,6 +293,8 @@ export const places: TouristPlace[] = [
     accessibility: "Alta",
     description: "Ciudad colonial Patrimonio de la Humanidad con arquitectura barroca, ruinas y tradiciones vivas.",
     image: antigua,
+    popularidad: 93,
+    visitas: 650000,
   },
   {
     id: "18",
@@ -272,6 +308,8 @@ export const places: TouristPlace[] = [
     accessibility: "Baja",
     description: "Puente natural de piedra caliza con pozas escalonadas de agua turquesa en medio de la selva.",
     image: semucChampey,
+    popularidad: 80,
+    visitas: 120000,
   },
   {
     id: "19",
@@ -285,6 +323,8 @@ export const places: TouristPlace[] = [
     accessibility: "Media",
     description: "Zona arqueológica zapoteca sobre una meseta con plazas ceremoniales y observatorios astronómicos.",
     image: oaxaca,
+    popularidad: 81,
+    visitas: 300000,
   },
 ];
 
