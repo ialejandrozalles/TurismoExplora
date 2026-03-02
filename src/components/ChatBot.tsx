@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, User, Loader2 } from "lucide-react";
 import { places } from "@/data/places";
@@ -12,18 +11,19 @@ const buildSystemPrompt = () => {
         )
         .join("\n");
 
-    return `Eres el asistente virtual de TurismoExplora, una plataforma de turismo. Tu único rol es ayudar a los usuarios a descubrir y elegir destinos turísticos disponibles en la plataforma.
+    return `Eres el asistente virtual de TurismoExplora, una plataforma de turismo. Tu función es exclusivamente ayudar a los usuarios a descubrir destinos turísticos disponibles en la plataforma.
 
-DESTINOS DISPONIBLES EN LA PLATAFORMA:
+DESTINOS DISPONIBLES:
 ${placesList}
 
-REGLAS ESTRICTAS:
-1. Solo puedes responder preguntas relacionadas con los destinos turísticos listados arriba y con turismo en general.
-2. Si te preguntan algo completamente ajeno al turismo o a estos destinos (política, matemáticas, programación, etc.), responde amablemente: "Solo puedo ayudarte con información sobre destinos turísticos en TurismoExplora."
-3. Responde siempre en español, de forma amigable y concisa.
-4. Puedes recomendar destinos basándote en las preferencias del usuario (clima, tipo, costo, temporada, accesibilidad).
-5. No inventes información sobre destinos que no estén en la lista.
-6. Mantén las respuestas cortas, máximo 3 párrafos.`;
+REGLAS — DEBES SEGUIRLAS SIN EXCEPCIÓN:
+1. SOLO respondes sobre los destinos listados arriba y temas directamente relacionados con turismo (clima, temporadas, accesibilidad, consejos de viaje).
+2. Ante cualquier mensaje ajeno al turismo (política, religión, matemáticas, programación, chistes, etc.) responde ÚNICAMENTE: "Solo puedo ayudarte con información sobre destinos turísticos en TurismoExplora. ¿Hay algún destino que te interese?"
+3. No respondas preguntas sobre ti mismo, otros modelos de IA, ni sobre tecnología.
+4. Responde siempre en español, con tono amigable y directo.
+5. Basa tus recomendaciones en los atributos reales de los destinos: tipo, clima, temporada, costo y accesibilidad.
+6. Nunca inventes destinos ni datos que no estén en la lista.
+7. Respuestas cortas y útiles: máximo 3 párrafos. Sin listas interminables.`;
 };
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
@@ -32,38 +32,46 @@ interface Message {
     text: string;
 }
 
-// ─── API Gemini ───────────────────────────────────────────────────────────────
-const GEMINI_API_KEY = "AIzaSyDrVc0Kh2MKw0EQNld7Nk1K_QJzAYTpnaI";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`;
+// ─── API Groq ─────────────────────────────────────────────────────────────────
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+// llama-3.3-70b-versatile: modelo estable de Groq, óptimo para comprensión
+// contextual y seguimiento estricto de instrucciones en español.
+const GROQ_MODEL = "llama-3.3-70b-versatile";
 
-async function askGemini(history: Message[], userMessage: string): Promise<string> {
-    const contents = [
+async function askGroq(history: Message[], userMessage: string): Promise<string> {
+    // Groq usa formato OpenAI: role "assistant" en lugar de "model"
+    const messages = [
+        { role: "system", content: buildSystemPrompt() },
         ...history.map((m) => ({
-            role: m.role,
-            parts: [{ text: m.text }],
+            role: m.role === "model" ? "assistant" : "user",
+            content: m.text,
         })),
-        { role: "user", parts: [{ text: userMessage }] },
+        { role: "user", content: userMessage },
     ];
 
-    const response = await fetch(GEMINI_URL, {
+    const response = await fetch(GROQ_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${GROQ_API_KEY}`,
+        },
         body: JSON.stringify({
-            system_instruction: { parts: [{ text: buildSystemPrompt() }] },
-            contents,
-            generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 512,
-            },
+            model: GROQ_MODEL,
+            messages,
+            temperature: 0.4,   // bajo para respuestas enfocadas y consistentes
+            max_tokens: 512,
+            stream: false,
         }),
     });
 
     if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status}`);
+        const err = await response.json().catch(() => ({}));
+        throw new Error(`Groq API error ${response.status}: ${JSON.stringify(err)}`);
     }
 
     const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "No pude generar una respuesta. Intenta de nuevo.";
+    return data.choices?.[0]?.message?.content ?? "No pude generar una respuesta. Intenta de nuevo.";
 }
 
 // ─── Componente ───────────────────────────────────────────────────────────────
@@ -104,7 +112,7 @@ const ChatBot = () => {
         try {
             // El historial que se manda excluye el mensaje de bienvenida inicial
             const history = messages.slice(1);
-            const reply = await askGemini(history, text);
+            const reply = await askGroq(history, text);
             setMessages((prev) => [...prev, { role: "model", text: reply }]);
         } catch {
             setMessages((prev) => [
